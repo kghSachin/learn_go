@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/kghsachin/learn_go/internal/auth"
 	"github.com/kghsachin/learn_go/internal/database"
 )
 
@@ -33,5 +34,21 @@ func (apiCfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Reques
 		respondWithError(w, 400, fmt.Sprintf("Error creating user: %s", err))
 		return
 	}
+	respondWithJson(w, 201, databaseUserToUser(user))
+}
+
+func (apiCfg *apiConfig) handlerGetUser(w http.ResponseWriter, r *http.Request) {
+	apiKey, err := auth.GetAPIKey(r.Header)
+	if err != nil {
+		respondWithError(w, 400, fmt.Sprintf("Auth error : %s", err))
+		return
+	}
+	user, err := apiCfg.DB.GetUserByApiKey(r.Context(), apiKey)
+
+	if err != nil {
+		respondWithError(w, 400, fmt.Sprintf("Error getting user: %s", err))
+		return
+	}
 	respondWithJson(w, 200, databaseUserToUser(user))
+
 }
