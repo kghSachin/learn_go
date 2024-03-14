@@ -41,19 +41,12 @@ func (apiCfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Reques
 	respondWithJson(w, 201, databaseFeedToFeed(feed))
 }
 
-// func (apiCfg *apiConfig) handlerGetUser(w http.ResponseWriter, r *http.Request, user database.User) {
-//   respondWithJson(w, 200, databaseUserToUser(user))
-// 	// apiKey, err := auth.GetAPIKey(r.Header)
-// 	// if err != nil {
-// 	// 	respondWithError(w, 400, fmt.Sprintf("Auth error : %s", err))
-// 	// 	return
-// 	// }
-// 	// user, err := apiCfg.DB.GetUserByApiKey(r.Context(), apiKey)
+func (apiCfg *apiConfig) handlerGetFeeds(w http.ResponseWriter, r *http.Request) {
+	feeds, err := apiCfg.DB.GetFeeds(r.Context())
 
-// 	// if err != nil {
-// 	// 	respondWithError(w, 400, fmt.Sprintf("Error getting user: %s", err))
-// 	// 	return
-// 	// }
-// 	// respondWithJson(w, 200, databaseUserToUser(user))
-
-// }
+	if err != nil {
+		respondWithError(w, 400, fmt.Sprintf("Couldn't get feeds: %s", err))
+		return
+	}
+	respondWithJson(w, 201, databaseFeedsToFeeds(feeds))
+}
