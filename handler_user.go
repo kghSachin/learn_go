@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	
+
 	"github.com/kghsachin/learn_go/internal/database"
 )
 
@@ -38,18 +38,17 @@ func (apiCfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Reques
 }
 
 func (apiCfg *apiConfig) handlerGetUser(w http.ResponseWriter, r *http.Request, user database.User) {
-  respondWithJson(w, 200, databaseUserToUser(user))
-	// apiKey, err := auth.GetAPIKey(r.Header)
-	// if err != nil {
-	// 	respondWithError(w, 400, fmt.Sprintf("Auth error : %s", err))
-	// 	return
-	// }
-	// user, err := apiCfg.DB.GetUserByApiKey(r.Context(), apiKey)
+	respondWithJson(w, 200, databaseUserToUser(user))
+}
 
-	// if err != nil {
-	// 	respondWithError(w, 400, fmt.Sprintf("Error getting user: %s", err))
-	// 	return
-	// }
-	// respondWithJson(w, 200, databaseUserToUser(user))
-
+func (apiCfg *apiConfig) handleGetPostsForUser(w http.ResponseWriter, r *http.Request, user database.User) {
+	posts, err := apiCfg.DB.GetPostsForUser(r.Context(), database.GetPostsForUserParams{
+		UserID: user.ID,
+		Limit:  10,
+	})
+	if err != nil {
+		respondWithError(w, 500, fmt.Sprintf("Error fetching posts: %s", err))
+		return
+	}
+	respondWithJson(w, 200, databasePostsToPosts(posts))
 }

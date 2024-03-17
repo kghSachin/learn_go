@@ -2,10 +2,13 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/kghsachin/learn_go/internal/database"
 )
 
@@ -47,6 +50,34 @@ func scrapeFeed(db *database.Queries, wg *sync.WaitGroup, feed database.Feed) {
 
 	for _, item := range rssFeed.Channel.Item {
 		log.Printf("Title: %s on feed %v", item.Title, feed.Name)
+		description := sql.NullString{}
+		if item.Description != "" {
+			description.String = item.Description
+			description.Valid = true
+		}
+		t, err := time.Parse(time.RFC1123, item.PubDate)
+		if err != nil {
+			log.Printf("Error parsing time: %v", err)
+			continue
+		}
+
+		_, err = db.CreatePost(context.Background(), database.CreatePostParams{
+			ID:          uuid.New(),
+			CreatedAt:   time.Now().UTC(),
+			UpdatedAt:   time.Now().UTC(),
+			Description: description,
+			Title:       item.Title,
+			PublishedAt: t,
+			FeedID:      feed.ID,
+			Url:         item.Link,
+		})
+		if err != nil {
+			if strings.Contains(error.Error(err), "duplicate key value violates unique constraint") {
+				continue
+			}
+			log.Printf("Error creating post: %v", err)
+
+		}
 	}
 
 	log.Printf("Fetched feed: %s", feed.Url)
